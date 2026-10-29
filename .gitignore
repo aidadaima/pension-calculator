@@ -1,0 +1,39 @@
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# 编辑器 / IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+
+# Node
+node_modules/
+dist/
+miniprogram_npm/
+
+# .NET / 发布产物
+[Bb]in/
+[Oo]bj/
+*.dll
+*.pdb
+*.exe
+publish/
+
+# 敏感信息（连接串、账号清单一律不进仓库）
+**/web.config
+**/Web.config
+!**/Web.config.template
+**/*账号密码*
+**/*密码*
+.env
+*.pub
+
+# 大文件 / 生成物
+*.zip
+*.png.bak
