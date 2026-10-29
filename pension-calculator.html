@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>退休金测算 · 按现行政策估算你能领多少</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#fff; --line:#e3e8ef; --text:#1f2937; --muted:#6b7280;
+    --brand:#0e7490; --brand-soft:#ecfeff; --accent:#0f766e; --warn:#b45309; --warn-soft:#fffbeb;
+    --base:#0e7490; --pers:#0f766e; --trans:#a16207;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;line-height:1.6}
+  header{background:linear-gradient(120deg,#0e7490,#0f766e);color:#fff;padding:28px 24px 24px}
+  header h1{margin:0 0 6px;font-size:22px;font-weight:650;letter-spacing:.5px}
+  header p{margin:0;opacity:.9;font-size:13.5px}
+  .wrap{max-width:1120px;margin:0 auto;padding:20px 16px 48px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px 20px}
+  .card h2{margin:0 0 14px;font-size:15px;color:var(--brand);letter-spacing:.5px}
+  label{display:block;font-size:13px;color:var(--muted);margin:14px 0 5px}
+  label:first-of-type{margin-top:0}
+  select,input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;
+               font-size:14px;background:#fff;color:var(--text);font-family:inherit}
+  select:focus,input:focus{outline:2px solid var(--brand-soft);border-color:var(--brand)}
+  .hint{font-size:12px;color:#9ca3af;margin-top:4px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .chip{border:1px solid var(--line);background:#f9fafb;border-radius:999px;padding:3px 10px;
+        font-size:12px;color:var(--muted);cursor:pointer}
+  .chip:hover{border-color:var(--brand);color:var(--brand)}
+  .slider{display:flex;align-items:center;gap:10px}
+  input[type=range]{flex:1;padding:0}
+  .slider b{font-variant-numeric:tabular-nums;min-width:52px;text-align:right;font-size:13px}
+  .big{text-align:center;padding:8px 0 4px}
+  .big .num{font-size:42px;font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums;letter-spacing:-1px}
+  .big .unit{font-size:13px;color:var(--muted);margin-left:4px}
+  .big .cap{font-size:12.5px;color:var(--muted)}
+  .bars{margin:16px 0 4px}
+  .bar{display:flex;height:26px;border-radius:6px;overflow:hidden;background:#f1f5f9}
+  .bar div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11.5px;white-space:nowrap}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin-top:8px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+  td{padding:7px 0;border-bottom:1px dashed var(--line)}
+  td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .kv div{background:#f9fafb;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+  .kv span{display:block;font-size:12px;color:var(--muted)}
+  .kv b{font-size:17px;font-variant-numeric:tabular-nums;color:var(--text)}
+  .prog{height:8px;background:#f1f5f9;border-radius:999px;overflow:hidden;margin-top:6px}
+  .prog i{display:block;height:100%;background:var(--brand)}
+  .note{background:var(--warn-soft);border:1px solid #fde68a;color:#92400e;
+        border-radius:9px;padding:10px 12px;font-size:12.5px;margin-top:14px}
+  .ok{background:var(--brand-soft);border-color:#a5f3fc;color:#0e7490}
+  footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;font-size:12.5px;color:var(--muted)}
+  footer h3{font-size:13.5px;color:var(--text);margin:18px 0 6px}
+  footer code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:12px}
+  footer a{color:var(--brand)}
+  .formula{background:#f9fafb;border:1px solid var(--line);border-radius:9px;padding:12px 14px;margin-top:8px}
+  svg{display:block;width:100%;height:auto}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>退休金测算</h1>
+  <p>按现行政策估算：法定退休时间（含渐进式延迟）、最低缴费年限、每月能领多少、钱从哪来</p>
+</header>
+
+<div class="wrap">
+<div class="grid">
+
+  <div class="card">
+    <h2>填一下你的情况</h2>
+
+    <label>参保身份</label>
+    <select id="role">
+      <option value="m">男职工（原法定退休 60 岁）</option>
+      <option value="f55">女职工 · 干部 / 灵活就业（原 55 岁）</option>
+      <option value="f50">女工人（原 50 岁）</option>
+    </select>
+
+    <div class="row2">
+      <div>
+        <label>出生年月</label>
+        <input type="month" id="birth" value="1990-01">
+      </div>
+      <div>
+        <label>开始缴费年月</label>
+        <input type="month" id="start" value="2015-07">
+      </div>
+    </div>
+    <div class="hint">开始缴费之前、国家承认的连续工龄填到下面「视同缴费年限」。</div>
+
+    <div class="row2">
+      <div>
+        <label>视同缴费年限（年）</label>
+        <input type="number" id="deemed" value="0" min="0" max="40" step="0.5">
+      </div>
+      <div>
+        <label>平均缴费指数</label>
+        <input type="number" id="index" value="1" min="0.4" max="3" step="0.05">
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip" data-i="0.6">0.6 最低档</span>
+      <span class="chip" data-i="1">1.0 按社平</span>
+      <span class="chip" data-i="1.5">1.5</span>
+      <span class="chip" data-i="2">2.0</span>
+      <span class="chip" data-i="3">3.0 封顶</span>
+    </div>
+    <div class="hint">指数 = 你的缴费基数 ÷ 当地社平工资，多年取平均。按最低档交就是 0.6。</div>
+
+    <div class="row2">
+      <div>
+        <label>退休地计发基数（元/月）</label>
+        <input type="number" id="base" value="8000" min="1000" step="100">
+      </div>
+      <div>
+        <label>个人账户现有余额（元）</label>
+        <input type="number" id="acc" value="80000" min="0" step="1000">
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip" data-b="6000">6000</span>
+      <span class="chip" data-b="8000">8000</span>
+      <span class="chip" data-b="10000">10000</span>
+      <span class="chip" data-b="12000">12000</span>
+      <span class="chip" data-b="15000">15000</span>
+    </div>
+    <div class="hint">计发基数由各省公布（多数省已统一用全口径社平工资），可在参保地人社局官网查到。</div>
+
+    <div class="row2">
+      <div>
+        <label>个人账户记账利率（%/年）</label>
+        <input type="number" id="rate" value="3" min="0" max="10" step="0.1">
+      </div>
+      <div>
+        <label>过渡性养老金系数（%）</label>
+        <input type="number" id="trans" value="1.3" min="0" max="1.4" step="0.1">
+      </div>
+    </div>
+
+    <label>弹性退休：在法定年龄基础上</label>
+    <div class="slider">
+      <input type="range" id="flex" min="-36" max="36" step="1" value="0">
+      <b id="flexTxt">不提前不延后</b>
+    </div>
+    <div class="hint">达到最低缴费年限可自愿提前最多 3 年（不低于原法定年龄），也可与单位协商延后最多 3 年。</div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>测算结果</h2>
+      <div class="big">
+        <span class="num" id="total">—</span><span class="unit">元 / 月</span>
+        <div class="cap" id="cap">预计首次领取金额（退休当年）</div>
+      </div>
+
+      <div class="bars">
+        <div class="bar" id="bar"></div>
+        <div class="legend">
+          <span><i style="background:var(--base)"></i>基础养老金 <b id="lgBase">—</b></span>
+          <span><i style="background:var(--pers)"></i>个人账户 <b id="lgPers">—</b></span>
+          <span><i style="background:var(--trans)"></i>过渡性 <b id="lgTrans">—</b></span>
+        </div>
+      </div>
+
+      <table>
+        <tr><td>基础养老金</td><td id="tBase">—</td></tr>
+        <tr><td>个人账户养老金</td><td id="tPers">—</td></tr>
+        <tr><td>过渡性养老金</td><td id="tTrans">—</td></tr>
+      </table>
+
+      <div class="kv">
+        <div><span>法定退休时间</span><b id="kDate">—</b></div>
+        <div><span>退休时年龄</span><b id="kAge">—</b></div>
+        <div><span>缴费年限</span><b id="kYears">—</b></div>
+        <div><span>替代率（占缴费工资）</span><b id="kRate">—</b></div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="hint" id="minTxt">最低缴费年限 —</div>
+        <div class="prog"><i id="minBar" style="width:0"></i></div>
+      </div>
+
+      <div class="note" id="note"></div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h2>退休后每年能领多少</h2>
+      <svg id="chart" viewBox="0 0 520 200" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="hint">按每年上调 2% 估算的名义金额，未扣除通胀。柱子为当年月领额，折线为累计领取总额。</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<footer>
+  <h3>算出来的数是怎么来的</h3>
+  <div class="formula">
+    月养老金 = 基础养老金 + 个人账户养老金 + 过渡性养老金<br>
+    基础养老金 = 计发基数 × (1 + 平均缴费指数) ÷ 2 × 缴费年限 × 1%<br>
+    个人账户养老金 = 个人账户储存额 ÷ 计发月数<br>
+    过渡性养老金 = 计发基数 × 平均缴费指数 × 视同缴费年限 × 过渡系数（仅视同缴费年限 &gt; 0 时有）
+  </div>
+  <p>计发月数按官方公布节点取值：50 岁 195、55 岁 170、58 岁 152、60 岁 139、63 岁 117，中间月份做线性插值。</p>
+
+  <h3>退休年龄怎么定的</h3>
+  <p>《国务院关于渐进式延迟法定退休年龄的办法》自 2025 年 1 月 1 日起施行：原 60 岁男职工、原 55 岁女职工，每 4 个月延迟 1 个月，15 年分别延迟到 63 岁、58 岁；原 50 岁女工人每 2 个月延迟 1 个月，延迟到 55 岁。最低缴费年限从 2030 年起每年提高 6 个月，由 15 年逐步提高到 20 年。</p>
+
+  <h3>政策依据</h3>
+  <p>
+    全国人大常委会《关于实施渐进式延迟法定退休年龄的决定》（人社部发布）<br>
+    中国政府网《稳妥有序实施延迟法定退休年龄》<br>
+    国家社会保险公共服务平台 · 养老保险待遇测算
+  </p>
+
+  <h3>说清楚边界</h3>
+  <p>这是按公开政策做的估算，不是社保经办机构的核定结果。各省计发基数、过渡系数、视同缴费认定、个人账户记账利率都有差异，实际金额以参保地核定为准。输入数据只在你自己的浏览器里计算，不上传、不保存。</p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- 政策参数 ----------
+  // 每几个月延迟 1 个月 / 最多延迟几个月 / 原法定退休年龄
+  var ROLE = {
+    m:   { base: 60, step: 4, maxDelay: 36, label: '男职工' },
+    f55: { base: 55, step: 4, maxDelay: 36, label: '女职工（原 55 岁）' },
+    f50: { base: 50, step: 2, maxDelay: 60, label: '女工人（原 50 岁）' }
+  };
+  // 计发月数：官方公布节点，中间线性插值
+  var DIVISOR = [[50, 195], [55, 170], [58, 152], [60, 139], [63, 117]];
+
+  function ymToMonths(y, m) { return y * 12 + (m - 1); }
+
+  /** 渐进式延迟：2025-01 起每 step 个月延迟 1 个月，封顶 maxDelay */
+  function delayMonths(baseYear, baseMonth, step, maxDelay) {
+    var since = ymToMonths(baseYear, baseMonth) - ymToMonths(2025, 1);
+    if (since < 0) return 0;
+    var d = Math.ceil((since + 1) / step);
+    return Math.min(d, maxDelay);
+  }
+
+  function divisorAt(ageYears) {
+    if (ageYears <= DIVISOR[0][0]) return DIVISOR[0][1];
+    var last = DIVISOR[DIVISOR.length - 1];
+    if (ageYears >= last[0]) return last[1];
+    for (var i = 0; i < DIVISOR.length - 1; i++) {
+      var a = DIVISOR[i], b = DIVISOR[i + 1];
+      if (ageYears >= a[0] && ageYears <= b[0]) {
+        var t = (ageYears - a[0]) / (b[0] - a[0]);
+        return a[1] + (b[1] - a[1]) * t;
+      }
+    }
+    return last[1];
+  }
+
+  /** 最低缴费年限：2029 年底前 15 年；2030 起每年 +0.5；2039 起 20 年 */
+  function minYears(retireYear) {
+    if (retireYear < 2030) return 15;
+    return Math.min(15 + 0.5 * (retireYear - 2029), 20);
+  }
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString('zh-CN');
+  }
+  function money(n) {
+    return '¥' + fmt(n);
+  }
+
+  // ---------- 计算 ----------
+  function calc() {
+    var role = ROLE[$('role').value];
+    var birth = $('birth').value.split('-');
+    var by = +birth[0], bm = +birth[1];
+    if (!by || !bm) return null;
+
+    // 原法定退休年月（未改革口径）
+    var origY = by + role.base, origM = bm;
+    var delay = delayMonths(origY, origM, role.step, role.maxDelay);
+
+    // 法定退休年月（延迟后）
+    var legalMonths = ymToMonths(origY, origM) + delay;
+    var flex = +$('flex').value;
+    var retireMonths = legalMonths + flex;
+
+    // 弹性提前不能低于原法定退休年龄
+    if (retireMonths < ymToMonths(origY, origM)) retireMonths = ymToMonths(origY, origM);
+
+    var retireY = Math.floor(retireMonths / 12);
+    var retireM = (retireMonths % 12) + 1;
+
+    // 退休时精确年龄（年）
+    var ageYears = (retireMonths - ymToMonths(by, bm)) / 12;
+
+    // 缴费年限
+    var start = $('start').value.split('-');
+    var sy = +start[0], sm = +start[1];
+    if (!sy || !sm) return null;
+    var deemed = Math.max(0, +$('deemed').value || 0);
+    var payMonths = Math.max(0, retireMonths - ymToMonths(sy, sm));
+    var years = payMonths / 12 + deemed;
+
+    // 个人账户：现有余额复利到退休 + 未来缴费（按 8% 计入个人账户）
+    var r = (+$('rate').value || 0) / 100;
+    var idx = Math.max(0.4, +$('index').value || 1);
+    var base = Math.max(0, +$('base').value || 0);
+    var acc0 = Math.max(0, +$('acc').value || 0);
+
+    var nowMonths = ymToMonths(new Date().getFullYear(), new Date().getMonth() + 1);
+    var leftMonths = Math.max(0, retireMonths - nowMonths);
+    var leftYears = leftMonths / 12;
+
+    var accNow = acc0 * Math.pow(1 + r, leftYears);
+    var monthlyIn = base * idx * 0.08;                 // 每月计入个人账户
+    var futureIn = monthlyIn * leftMonths * (1 + r * leftYears / 2);
+    var accTotal = accNow + futureIn;
+
+    // 三项养老金
+    var divisor = divisorAt(ageYears);
+    var pBase = base * (1 + idx) / 2 * years * 0.01;
+    var pPers = divisor > 0 ? accTotal / divisor : 0;
+    var pTrans = base * idx * deemed * ((+$('trans').value || 0) / 100);
+    var total = pBase + pPers + pTrans;
+
+    // 个人缴费本金（8% 部分），用于算回本
+    var selfPaid = monthlyIn * payMonths + acc0;
+
+    return {
+      retireY: retireY, retireM: retireM, ageYears: ageYears,
+      legalY: Math.floor(legalMonths / 12), legalM: (legalMonths % 12) + 1,
+      delay: delay, years: years, deemed: deemed,
+      divisor: divisor, pBase: pBase, pPers: pPers, pTrans: pTrans,
+      total: total, accTotal: accTotal, selfPaid: selfPaid,
+      minY: minYears(retireY), base: base, idx: idx,
+      roleLabel: role.label, origAge: role.base
+    };
+  }
+
+  // ---------- 渲染 ----------
+  function bar(list) {
+    var sum = 0, i;
+    for (i = 0; i < list.length; i++) sum += list[i].v;
+    var el = $('bar');
+    el.innerHTML = '';
+    if (sum <= 0) return;
+    for (i = 0; i < list.length; i++) {
+      if (list[i].v <= 0) continue;
+      var pct = list[i].v / sum * 100;
+      if (pct < 6) continue;
+      var d = document.createElement('div');
+      d.style.width = pct + '%';
+      d.style.background = list[i].c;
+      d.textContent = Math.round(pct) + '%';
+      el.appendChild(d);
+    }
+  }
+
+  function chart(total, startYear, startAge) {
+    var svg = $('chart');
+    var W = 520, H = 200, padL = 46, padR = 46, padB = 26, padT = 12;
+    var years = 25, maxVal = 0, i;
+    var pts = [];
+    for (i = 0; i < years; i++) {
+      var v = total * Math.pow(1.02, i);
+      pts.push(v);
+      if (v > maxVal) maxVal = v;
+    }
+    var cum = 0, cumPts = [];
+    for (i = 0; i < years; i++) { cum += pts[i] * 12; cumPts.push(cum); }
+
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var bw = plotW / years;
+    var s = '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#fff"/>';
+
+    // 横向网格与左侧刻度（月领额）
+    for (i = 0; i <= 4; i++) {
+      var gy = padT + plotH * i / 4;
+      s += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="#eef2f7"/>';
+      var lv = maxVal * (1 - i / 4);
+      s += '<text x="' + (padL - 6) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="10" fill="#9ca3af">' +
+           Math.round(lv / 1000) + 'k</text>';
+    }
+
+    // 柱：每年月领额
+    for (i = 0; i < years; i++) {
+      var h = pts[i] / maxVal * plotH;
+      var x = padL + i * bw + bw * 0.18;
+      var w = bw * 0.64;
+      s += '<rect x="' + x.toFixed(1) + '" y="' + (padT + plotH - h).toFixed(1) + '" width="' + w.toFixed(1) +
+           '" height="' + h.toFixed(1) + '" rx="2" fill="#0e7490" opacity="' + (0.35 + 0.5 * i / years).toFixed(2) + '"/>';
+    }
+
+    // 折线：累计领取（右轴）
+    var maxCum = cumPts[cumPts.length - 1];
+    var d = '';
+    for (i = 0; i < years; i++) {
+      var cx = padL + i * bw + bw / 2;
+      var cy = padT + plotH - cumPts[i] / maxCum * plotH;
+      d += (i === 0 ? 'M' : 'L') + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ';
+    }
+    s += '<path d="' + d + '" fill="none" stroke="#b45309" stroke-width="2"/>';
+
+    // 右轴刻度（累计）
+    for (i = 0; i <= 2; i++) {
+      var ry = padT + plotH * i / 2;
+      var rv = maxCum * (1 - i / 2);
+      s += '<text x="' + (W - padR + 6) + '" y="' + (ry + 4) + '" font-size="10" fill="#b45309">' +
+           (rv / 10000).toFixed(0) + '万</text>';
+    }
+
+    // x 轴年份
+    for (i = 0; i < years; i += 6) {
+      var tx = padL + i * bw + bw / 2;
+      s += '<text x="' + tx.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="#9ca3af">' +
+           (startYear + i) + '</text>';
+    }
+    s += '<text x="' + padL + '" y="' + (H - 8) + '" font-size="10" fill="#9ca3af">' + startAge.toFixed(0) + '岁起</text>';
+
+    svg.innerHTML = s;
+  }
+
+  function render() {
+    var r = calc();
+    if (!r) return;
+
+    $('total').textContent = fmt(r.total);
+    $('cap').textContent = '预计首次领取金额（' + r.retireY + ' 年 ' + r.retireM + ' 月退休当月）';
+
+    $('tBase').textContent = money(r.pBase);
+    $('tPers').textContent = money(r.pPers);
+    $('tTrans').textContent = money(r.pTrans);
+    $('lgBase').textContent = money(r.pBase);
+    $('lgPers').textContent = money(r.pPers);
+    $('lgTrans').textContent = money(r.pTrans);
+
+    bar([
+      { v: r.pBase, c: '#0e7490' },
+      { v: r.pPers, c: '#0f766e' },
+      { v: r.pTrans, c: '#a16207' }
+    ]);
+
+    $('kDate').textContent = r.retireY + '-' + (r.retireM < 10 ? '0' : '') + r.retireM;
+    $('kAge').textContent = r.ageYears.toFixed(1) + ' 岁';
+    $('kYears').textContent = r.years.toFixed(1) + ' 年';
+    var wage = r.base * r.idx;
+    $('kRate').textContent = wage > 0 ? (r.total / wage * 100).toFixed(1) + '%' : '—';
+
+    var pct = Math.min(100, r.years / r.minY * 100);
+    $('minBar').style.width = pct + '%';
+    $('minTxt').textContent = '最低缴费年限 ' + r.minY + ' 年（' + r.retireY + ' 年退休对应），你目前 ' +
+                              r.years.toFixed(1) + ' 年';
+
+    var note = $('note');
+    var msgs = [];
+    if (r.years + 0.001 < r.minY) {
+      msgs.push('缴费年限还差 ' + (r.minY - r.years).toFixed(1) + ' 年，到退休时不够最低年限，需要延长缴费或一次性补缴才能按月领养老金。');
+    } else {
+      msgs.push('缴费年限已满足最低要求。');
+    }
+    if (r.delay > 0) {
+      msgs.push('按渐进式延迟政策，你的法定退休时间比原 ' + r.origAge + ' 岁推迟了 ' +
+                (r.delay / 12).toFixed(1) + ' 年。');
+    }
+    if (+$('flex').value < 0) {
+      msgs.push('选择了提前退休：养老金会按实际退休年龄重算，计发月数变大、缴费年限变短，金额相应降低。');
+    }
+    if (+$('flex').value > 0) {
+      msgs.push('选择了延后退休：继续缴费使年限和个人账户增加，计发月数变小，金额相应提高。');
+    }
+    if (r.selfPaid > 0 && r.total > 0) {
+      var back = r.selfPaid / r.total;
+      msgs.push('个人缴费本金约 ' + money(r.selfPaid) + '，按这个金额约 ' + back.toFixed(1) +
+                ' 个月（' + (back / 12).toFixed(1) + ' 年）领回。');
+    }
+    note.className = msgs[0].indexOf('差') >= 0 ? 'note' : 'note ok';
+    note.textContent = msgs.join(' ');
+
+    chart(r.total, r.retireY, r.ageYears);
+  }
+
+  // ---------- 事件 ----------
+  ['role', 'birth', 'start', 'deemed', 'index', 'base', 'acc', 'rate', 'trans', 'flex'].forEach(function (id) {
+    $(id).addEventListener('input', render);
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-i]'), function (c) {
+    c.addEventListener('click', function () {
+      $('index').value = c.getAttribute('data-i');
+      render();
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-b]'), function (c) {
+    c.addEventListener('click', function () {
+      $('base').value = c.getAttribute('data-b');
+      render();
+    });
+  });
+
+  $('flex').addEventListener('input', function () {
+    var v = +$('flex').value;
+    $('flexTxt').textContent = v === 0 ? '不提前不延后'
+      : (v < 0 ? '提前 ' + (-v) + ' 个月' : '延后 ' + v + ' 个月');
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
